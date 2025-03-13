@@ -58,7 +58,7 @@ const DailyTaskTypeform: React.FC = () => {
     newTasks[index] = { ...newTasks[index], [field]: value };
     setTasks(newTasks);
   };
-
+    
   const addTask = (): void => {
     setTasks([...tasks, { text: "", status: "Not Started" }]);
   };
@@ -132,17 +132,18 @@ const DailyTaskTypeform: React.FC = () => {
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "Done":
-        return "bg-green-100 text-green-800";
+        return "border-green-500";
       case "Ongoing":
-        return "bg-blue-100 text-blue-800";
+        return "border-blue-500";
       case "Cancelled":
-        return "bg-red-100 text-red-800";
+        return "border-red-500";
       case "Postponed":
-        return "bg-yellow-100 text-yellow-800";
+        return "border-yellow-500";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "border-gray-300";
     }
-  };
+  };  
+  
 
   // Render the form based on the current step
   const renderStep = (): JSX.Element | null => {
@@ -229,7 +230,7 @@ const DailyTaskTypeform: React.FC = () => {
               {tasks.map((task, index) => (
                 <div
                   key={index}
-                  className="flex flex-col space-y-2 p-3 md:p-4 border rounded-lg bg-white shadow-sm"
+                  className={`flex flex-col space-y-2 p-3 md:p-4 border rounded-lg bg-white shadow-sm border-l-4 ${getStatusColor(task.status)}`}
                 >
                   <div className="flex items-center space-x-2">
                     <input
@@ -331,27 +332,25 @@ const DailyTaskTypeform: React.FC = () => {
 
           {tasks.length > 0 ? (
             <ul className="space-y-3">
-              {tasks.map((task, index) => (
-                <li
-                  key={index}
-                  className="flex items-center p-2 md:p-3 border rounded-lg"
+            {tasks.map((task, index) => (
+              <li
+                key={index}
+                className={`flex items-center p-2 md:p-3 border-l-4 ${getStatusColor(task.status)} rounded-lg shadow-sm`}
+              >
+                <span className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center bg-blue-100 text-blue-800 rounded-full mr-2 md:mr-3 text-xs md:text-sm font-medium">
+                  {index + 1}
+                </span>
+                <span className="flex-grow text-sm md:text-base">
+                  {task.text}
+                </span>
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}
                 >
-                  <span className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center bg-blue-100 text-blue-800 rounded-full mr-2 md:mr-3 text-xs md:text-sm font-medium">
-                    {index + 1}
-                  </span>
-                  <span className="flex-grow text-sm md:text-base">
-                    {task.text}
-                  </span>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ml-2 ${getStatusColor(
-                      task.status
-                    )}`}
-                  >
-                    {task.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  {task.status}
+                </span>
+              </li>
+            ))}
+          </ul>                   
           ) : (
             <p className="text-gray-500 italic text-sm md:text-base">
               No tasks added for this {planType}.
