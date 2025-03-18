@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, JSX } from "react";
 import { appendSpreadsheetData } from "../api/sheets";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
@@ -16,14 +16,6 @@ interface Todo {
 }
 
 const DailyTaskTypeform: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [planType, setPlanType] = useState<string>(""); // "day" or "week"
-  const [date, setDate] = useState<string>("");
-  const [tasks, setTasks] = useState<{ text: string; status: string }[]>([
-    { text: "", status: "Not Started" },
-  ]);
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-
   const { getParams } = useQueryParams({});
   const { name, id } = getParams();
 
@@ -39,6 +31,14 @@ const DailyTaskTypeform: React.FC = () => {
   // Format today's date as YYYY-MM-DD for the date input default
   const today: Date = new Date();
   const formattedDate: string = today.toISOString().split("T")[0];
+
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [planType, setPlanType] = useState<string>(""); // "day" or "week"
+  const [date, setDate] = useState<string>(formattedDate);
+  const [tasks, setTasks] = useState<{ text: string; status: string }[]>([
+    { text: "", status: "Not Started" },
+  ]);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   const handlePlanTypeChange = (type: string): void => {
     setPlanType(type);
@@ -194,12 +194,7 @@ const DailyTaskTypeform: React.FC = () => {
               </button>
               <button
                 onClick={nextStep}
-                disabled={!date}
-                className={`px-4 md:px-6 py-2 md:py-3 text-base md:text-lg font-medium rounded-lg transition-colors ${
-                  date
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                className="px-4 md:px-6 py-2 md:py-3 text-base md:text-lg font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 Continue →
               </button>
