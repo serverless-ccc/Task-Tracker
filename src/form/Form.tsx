@@ -3,8 +3,9 @@ import { appendSpreadsheetData } from "../api/sheets";
 import { format } from "date-fns";
 import useQueryParams from "../hooks/useSearchParams";
 
-import { DatePicker, Select } from "antd";
+import { DatePicker, message, Select } from "antd";
 import { Button } from "antd";
+import { useNavigate } from "react-router-dom";
 
 interface Todo {
   id: number | string; // Unique identifier for the todo within the list
@@ -37,7 +38,7 @@ const DailyTaskTypeform: React.FC = () => {
     { value: "Cancelled", label: "Cancelled" },
     { value: "Postponed", label: "Postponed" },
   ];
-
+  const navigate = useNavigate();
   // Format today's date as YYYY-MM-DD for the date input default
   const today: Date = new Date();
   const formattedDate: string = today.toISOString().split("T")[0];
@@ -88,6 +89,12 @@ const DailyTaskTypeform: React.FC = () => {
     event: React.MouseEvent<HTMLButtonElement>
   ): Promise<void> => {
     event.preventDefault();
+    message.open({
+      key: "submit",
+      type: "loading",
+      content: "Submitting...",
+      duration: 2,
+    });
 
     const doneTasks = tasks.filter((task) => task.status === "Done");
     const ongoingTasks = tasks.filter((task) => task.status === "Ongoing");
@@ -107,19 +114,33 @@ const DailyTaskTypeform: React.FC = () => {
       NotStarted: notStartedTasks.map((task) => task.text).join(", "),
       name: name,
       id: id,
-      date: format(new Date(date), "do MMM yyyy"),
+      date: date,
     };
 
-    appendSpreadsheetData([
-      todoToAdd.id,
-      todoToAdd.name,
-      todoToAdd.date,
-      todoToAdd.Done,
-      todoToAdd.Ongoing,
-      todoToAdd.Cancelled,
-      todoToAdd.Postponed,
-      todoToAdd.NotStarted,
-    ]);
+    try {
+      await appendSpreadsheetData([
+        todoToAdd.id,
+        todoToAdd.name,
+        todoToAdd.date,
+        todoToAdd.Done,
+        todoToAdd.Ongoing,
+        todoToAdd.Cancelled,
+        todoToAdd.Postponed,
+        todoToAdd.NotStarted,
+      ]);
+      message.open({
+        key: "submit",
+        type: "success",
+        content: "Plan submitted successfully",
+      });
+      navigate("/");
+    } catch (error) {
+      message.open({
+        key: "submit",
+        type: "error",
+        content: "Error submitting plan",
+      });
+    }
   };
 
   const resetForm = (): void => {

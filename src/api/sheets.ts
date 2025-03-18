@@ -32,9 +32,12 @@ export const appendSpreadsheetData = async (
       values: [data],
     },
   };
-
-  const response = await axios(options);
-  return response.data;
+  try {
+    const response = await axios(options);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const appendSpreadsheetAttendence = async (
