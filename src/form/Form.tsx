@@ -3,6 +3,9 @@ import { appendSpreadsheetData } from "../api/sheets";
 import { format } from "date-fns";
 import useQueryParams from "../hooks/useSearchParams";
 
+import { DatePicker, Select } from "antd";
+import { Button } from "antd";
+
 interface Todo {
   id: number | string; // Unique identifier for the todo within the list
   name: string;
@@ -27,12 +30,12 @@ const DailyTaskTypeform: React.FC = () => {
   const { name, id } = getParams();
 
   // Task status options
-  const statusOptions: string[] = [
-    "Not Started",
-    "Ongoing",
-    "Done",
-    "Cancelled",
-    "Postponed",
+  const statusOptions = [
+    { value: "Not Started", label: "Not Started" },
+    { value: "Ongoing", label: "Ongoing" },
+    { value: "Done", label: "Done" },
+    { value: "Cancelled", label: "Cancelled" },
+    { value: "Postponed", label: "Postponed" },
   ];
 
   // Format today's date as YYYY-MM-DD for the date input default
@@ -44,8 +47,8 @@ const DailyTaskTypeform: React.FC = () => {
     nextStep();
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setDate(e.target.value);
+  const handleDateChange = (e: Date): void => {
+    setDate(format(e, "do MMM yyyy"));
   };
 
   const handleTaskChange = (
@@ -148,80 +151,74 @@ const DailyTaskTypeform: React.FC = () => {
     switch (currentStep) {
       case 0:
         return (
-          <div className="flex flex-col items-center space-y-6 w-full">
-            <h2 className="text-xl md:text-2xl font-bold text-center">
+          <div className="flex flex-col space-y-6 w-full">
+            <h2 className="text-xl md:text-2xl font-bold text-left">
               Are you planning for a day or a week?
             </h2>
             <div className="flex flex-col md:flex-row gap-4">
-              <button
+              <Button
+                size="large"
+                type="primary"
                 onClick={() => handlePlanTypeChange("day")}
-                className="px-6 py-3 text-lg font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 Day
-              </button>
-              <button
+              </Button>
+              <Button
+                size="large"
+                type="primary"
                 onClick={() => handlePlanTypeChange("week")}
-                className="px-6 py-3 text-lg font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 Week
-              </button>
+              </Button>
             </div>
           </div>
         );
       case 1:
         return (
-          <div className="flex flex-col items-center space-y-6 w-full">
-            <h2 className="text-xl md:text-2xl font-bold text-center">
+          <div className="flex flex-col  space-y-6 w-full">
+            <h2 className="text-xl md:text-2xl font-bold text-left">
               {planType === "day"
-                ? "What day are you planning for?"
-                : "What week are you planning for?"}
+                ? "What did you plan for today?"
+                : "What did you plan for this week?"}
             </h2>
-            <input
+            {planType === "day" ? (
+              <DatePicker
+                onChange={handleDateChange}
+                size="large"
+                className="max-w-[250px]"
+                status={date === "" ? "error" : undefined}
+              />
+            ) : (
+              <DatePicker
+                onChange={handleDateChange}
+                picker="week"
+                showWeek
+                size="large"
+                className="max-w-[250px]"
+              />
+            )}
+            {/* <input
               type="date"
               name="date"
               value={date || formattedDate}
-              onChange={handleDateChange}
+             
               className="p-3 md:p-4 text-base md:text-xl border rounded-lg shadow-sm w-full max-w-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            /> */}
             <div className="flex space-x-4">
-              <button
-                onClick={prevStep}
-                className="px-4 py-2 text-sm md:text-base text-gray-600 hover:text-gray-800 transition-colors"
-              >
+              <Button onClick={prevStep} size="large" type="default">
                 ← Back
-              </button>
-              <button
-                onClick={nextStep}
-                disabled={!date}
-                className={`px-4 md:px-6 py-2 md:py-3 text-base md:text-lg font-medium rounded-lg transition-colors ${
-                  date
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
+              </Button>
+              <Button size="large" type="primary" onClick={nextStep}>
                 Continue →
-              </button>
+              </Button>
             </div>
           </div>
         );
       case 2:
         return (
-          <div className="flex flex-col items-center space-y-6 w-full">
-            <h2 className="text-xl md:text-2xl font-bold text-center px-2">
-              What tasks did you have planned for{" "}
-              {planType === "day"
-                ? new Date(date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
-                : `the week of ${new Date(date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}`}
-              ?
+          <div className="flex flex-col space-y-6 w-full">
+            <h2 className="text-xl md:text-2xl font-bold text-left">
+              What tasks did you have planned for {date}?
             </h2>
 
             <div className="w-full max-w-md space-y-4 px-2">
@@ -242,63 +239,47 @@ const DailyTaskTypeform: React.FC = () => {
                       placeholder={`Task ${index + 1}`}
                       className="p-2 md:p-3 flex-grow border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
                     />
-                    <button
+                    <Button
                       onClick={() => removeTask(index)}
                       className="p-2 md:p-3 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
                     >
                       ✕
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <label className="text-xs md:text-sm text-gray-600 font-medium">
                       Status:
                     </label>
-                    <select
+                    <Select
                       value={task.status}
-                      onChange={(e) =>
-                        handleTaskChange(index, "status", e.target.value)
-                      }
-                      className="p-1 md:p-2 border rounded-lg text-xs md:text-sm flex-grow focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      {statusOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      size="large"
+                      onChange={(e) => handleTaskChange(index, "status", e)}
+                      className="w-full"
+                      options={statusOptions}
+                    />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex flex-wrap justify-center gap-3 md:space-x-4">
-              <button
-                onClick={addTask}
-                className="px-3 md:px-4 py-2 text-sm md:text-base text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-              >
+            <div className="flex flex-wrap justify-start gap-3 md:space-x-4">
+              <Button size="large" onClick={addTask}>
                 + Add Task
-              </button>
+              </Button>
 
-              <button
+              <Button
+                size="large"
                 onClick={handleSubmit}
                 disabled={tasks.every((task) => task.text.trim() === "")}
-                className={`px-4 md:px-6 py-2 text-sm md:text-base text-white rounded-lg transition-colors ${
-                  tasks.some((task) => task.text.trim() !== "")
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-gray-300 cursor-not-allowed"
-                }`}
               >
                 Submit
-              </button>
+              </Button>
             </div>
 
-            <button
-              onClick={prevStep}
-              className="px-4 py-2 text-sm md:text-base text-gray-600 hover:text-gray-800 transition-colors"
-            >
+            <Button onClick={prevStep} size="large">
               ← Back
-            </button>
+            </Button>
           </div>
         );
       default:
@@ -310,7 +291,7 @@ const DailyTaskTypeform: React.FC = () => {
   const renderSummary = (): JSX.Element => {
     return (
       <div className="flex flex-col items-center space-y-6 w-full">
-        <h2 className="text-xl md:text-2xl font-bold text-center">
+        <h2 className="text-xl md:text-2xl font-bold text-left">
           {planType === "day" ? "Your Daily Plan" : "Your Weekly Plan"}
         </h2>
 
@@ -361,24 +342,24 @@ const DailyTaskTypeform: React.FC = () => {
             </p>
           )}
         </div>
-        <button
+        <Button
           onClick={resetForm}
           className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
         >
           Create Another Plan
-        </button>
+        </Button>
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-2 md:p-4">
-      <div className="w-full max-w-xl md:max-w-2xl bg-white rounded-xl shadow-lg p-4 md:p-8">
+    <div className="flex flex-co p-2 md:p-4">
+      <div className="w-full max-w-xl md:max-w-2xl p-4 md:p-8">
         <div className="mb-4 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-800">
+          <h1 className="text-xl md:text-2xl font-bold text-left text-gray-800">
             Daily Task Planner
           </h1>
-          <p className="text-center text-gray-600 mt-2 text-sm md:text-base">
+          <p className="text-left text-gray-600 mt-2 text-sm md:text-base">
             Plan your day efficiently
           </p>
         </div>
