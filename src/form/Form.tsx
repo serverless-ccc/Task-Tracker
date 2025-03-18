@@ -133,7 +133,7 @@ const DailyTaskTypeform: React.FC = () => {
         type: "success",
         content: "Plan submitted successfully",
       });
-      navigate("/");
+      navigate("/submited");
     } catch (error) {
       message.open({
         key: "submit",
@@ -292,6 +292,7 @@ const DailyTaskTypeform: React.FC = () => {
               <Button
                 size="large"
                 onClick={handleSubmit}
+                type="primary"
                 disabled={tasks.every((task) => task.text.trim() === "")}
               >
                 Submit
@@ -374,22 +375,24 @@ const DailyTaskTypeform: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-co p-2 md:p-4">
-      <div className="w-full max-w-xl md:max-w-2xl p-4 md:p-8">
-        <div className="mb-4 md:mb-8">
-          <h1 className="text-xl md:text-2xl font-bold text-left text-gray-800">
-            Daily Task Planner
-          </h1>
-          <p className="text-left text-gray-600 mt-2 text-sm md:text-base">
-            Plan your day efficiently
-          </p>
-        </div>
+    <div className="container">
+      <div className="flex flex-co p-2 md:p-4">
+        <div className="w-full max-w-xl md:max-w-2xl p-4 md:p-8">
+          <div className="mb-4 md:mb-8">
+            <h1 className="text-xl md:text-2xl font-bold text-left text-gray-800">
+              Daily Task Planner
+            </h1>
+            <p className="text-left text-gray-600 mt-2 text-sm md:text-base">
+              Plan your day efficiently
+            </p>
+          </div>
 
-        {!isSubmitted ? (
-          <div className="w-full">{renderStep()}</div>
-        ) : (
-          renderSummary()
-        )}
+          {!isSubmitted ? (
+            <div className="w-full">{renderStep()}</div>
+          ) : (
+            renderSummary()
+          )}
+        </div>
       </div>
     </div>
   );
