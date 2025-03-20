@@ -431,6 +431,8 @@ const DailyTaskTypeform: React.FC = () => {
                             { value: "Pooja", label: "Pooja" },
                             { value: "Deepak", label: "Deepak" },
                             { value: "Ram Manohar", label: "Ram Manohar" },
+                            { value: "Roshan", label: "Roshan" },
+                            { value: "Jay Prakash", label: "Jay Prakash" },
                           ]}
                           className="xl:max-w-[250px]"
                           onSelect={(value) => {
