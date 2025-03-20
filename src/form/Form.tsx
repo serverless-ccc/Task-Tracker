@@ -3,7 +3,7 @@ import { appendSpreadsheetData } from "../api/sheets";
 import { format } from "date-fns";
 import useQueryParams from "../hooks/useSearchParams";
 
-import { DatePicker, message, Select } from "antd";
+import { DatePicker, Input, message, Select, Form } from "antd";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
 
@@ -25,9 +25,13 @@ const DailyTaskTypeform: React.FC = () => {
   const [tasks, setTasks] = useState<{ text: string; status: string }[]>([
     { text: "", status: "Not Started" },
   ]);
+  const [form, setForm] = useState<{ name: string; id: string }>({
+    name: "",
+    id: "",
+  });
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
-  const { getParams } = useQueryParams({});
+  const { getParams, updateParams } = useQueryParams({});
   const { name, id } = getParams();
 
   // Task status options
@@ -174,7 +178,7 @@ const DailyTaskTypeform: React.FC = () => {
         return (
           <div className="flex flex-col space-y-6 w-full">
             <h2 className="text-xl md:text-2xl font-bold text-left">
-              Are you planning for a day or a week?
+              Are you updating for a day or a week?
             </h2>
             <div className="flex flex-col md:flex-row gap-4">
               <Button
@@ -380,17 +384,102 @@ const DailyTaskTypeform: React.FC = () => {
         <div className="w-full max-w-xl md:max-w-2xl p-4 md:p-8">
           <div className="mb-4 md:mb-8">
             <h1 className="text-xl md:text-2xl font-bold text-left text-gray-800">
-              Daily Task Planner
+              Daily Task Updater
+            </h1>
+            <h1 className="text-left text-gray-600 text-xl md:text-2xl mt-2 capitalize">
+              {`Good ${
+                new Date().getHours() < 12
+                  ? "morning"
+                  : new Date().getHours() < 18
+                  ? "afternoon"
+                  : "evening"
+              }, ${name ? name : "Stranger"}`}
             </h1>
             <p className="text-left text-gray-600 mt-2 text-sm md:text-base">
-              Plan your day efficiently
+              {name ? (
+                "Update your daily tasks"
+              ) : (
+                <div className="flex flex-col">
+                  <span> Please Fill the form below</span>
+
+                  <span className="flex flex-col">
+                    <Form
+                      name="layout-multiple-horizontal"
+                      layout="vertical"
+                      labelCol={{ span: 4 }}
+                      wrapperCol={{ span: 20 }}
+                      // className="flex flex-col"
+                      onFinish={() => {
+                        updateParams({
+                          name: form.name,
+                          id: form.id,
+                        });
+                      }}
+                    >
+                      <Form.Item
+                        label="Name"
+                        name="Name"
+                        layout="vertical"
+                        rules={[{ required: true }]}
+                      >
+                        <Select
+                          placeholder="Select your name"
+                          options={[
+                            { value: "Glen", label: "Glen", id: "900107" },
+                            { value: "Amlan", label: "Amlan" },
+                            { value: "Daarshik", label: "Daarshik" },
+                            { value: "Pooja", label: "Pooja" },
+                            { value: "Deepak", label: "Deepak" },
+                            { value: "Ram Manohar", label: "Ram Manohar" },
+                          ]}
+                          className="xl:max-w-[250px]"
+                          onSelect={(value) => {
+                            setForm((prev) => ({ ...prev, name: value }));
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="ID"
+                        name="ID"
+                        layout="vertical"
+                        rules={[{ required: true }]}
+                      >
+                        <Input
+                          placeholder="Enter your id"
+                          onChange={(e) => {
+                            setForm((prev) => ({
+                              ...prev,
+                              id: e.target.value,
+                            }));
+                          }}
+                          className="xl:max-w-[250px]"
+                          size="large"
+                        />
+                      </Form.Item>
+                      <Form.Item>
+                        <Button
+                          type="primary"
+                          htmlType="submit"
+                          className="xl:max-w-[250px]"
+                        >
+                          Submit
+                        </Button>
+                      </Form.Item>
+                    </Form>
+                  </span>
+                </div>
+              )}
             </p>
           </div>
 
-          {!isSubmitted ? (
-            <div className="w-full">{renderStep()}</div>
-          ) : (
-            renderSummary()
+          {name && id && (
+            <span>
+              {!isSubmitted ? (
+                <div className="w-full">{renderStep()}</div>
+              ) : (
+                renderSummary()
+              )}
+            </span>
           )}
         </div>
       </div>
