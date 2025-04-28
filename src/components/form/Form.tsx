@@ -233,14 +233,16 @@ const TodoForm: React.FC = () => {
       //   {
       //     headers: {
       //       "Content-Type": "application/json",
-      //       Authorization: `Bearer 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`,
+      //       Authorization: `Bearer`,
       //     },
       //   }
       // );
 
       // Gemini API call
       const res = await axios.post(
-        "http://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCIj3UowiOFmtUvbC0_pqmKIhD0a78RueU",
+        `http://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
+          import.meta.env.VITE_GEMINI_API_KEY
+        }`,
         {
           contents: [
             {
