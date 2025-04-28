@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import Confetti from "react-confetti";
 
-import submit from "../assets/submit.svg";
+import submit from "../../assets/submit.svg";
 
 import { useWindowSize } from "react-use";
 
