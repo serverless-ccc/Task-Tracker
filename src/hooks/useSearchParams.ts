@@ -5,7 +5,7 @@ interface QueryParams {
   [key: string]: string | null;
 }
 
-export default function useQueryParams(defaultParams: QueryParams) {
+export default function useQueryParams(defaultParams?: QueryParams) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   function updateParams(update: QueryParams) {
