@@ -240,7 +240,7 @@ const TodoForm: React.FC = () => {
 
       // Gemini API call
       const res = await axios.post(
-        `http://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
           import.meta.env.VITE_GEMINI_API_KEY
         }`,
         {
