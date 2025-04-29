@@ -10,16 +10,14 @@ import {
   Collapse,
   Steps,
   Layout,
-  Card,
-  Popconfirm,
   Spin,
 } from "antd";
-import dayjs from "dayjs";
+
 import { PlusOutlined, RobotOutlined } from "@ant-design/icons";
 import axios from "axios";
 import type { Dayjs } from "dayjs";
 import useQueryParams from "../../hooks/useSearchParams";
-
+import TrelloCard, { CardData } from "../Card";
 const { TextArea } = Input;
 const { Option } = Select;
 const { Step } = Steps;
@@ -34,6 +32,9 @@ interface Todo {
   employeeId: string;
   date: string;
   isForAWeek: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 }
 
 interface FormValues {
@@ -44,6 +45,15 @@ interface FormValues {
   priority: string;
   employeeId: string;
   date: Dayjs;
+}
+
+interface Todos {
+  pending: Todo[];
+  inProgress: Todo[];
+  completed: Todo[];
+  cancelled: Todo[];
+  postponed: Todo[];
+  notStarted: Todo[];
 }
 const getTimeOfDay = () => {
   const hours = new Date().getHours();
@@ -58,14 +68,21 @@ const getTimeOfDay = () => {
 
 const TodoForm: React.FC = () => {
   const [form] = Form.useForm<FormValues>();
-  const [editingTask] = Form.useForm<FormValues>();
+  // const [editingTask] = Form.useForm<FormValues>();
 
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todos>({
+    pending: [],
+    inProgress: [],
+    completed: [],
+    cancelled: [],
+    postponed: [],
+    notStarted: [],
+  });
   const [isForAWeek, setIsForAWeek] = useState<boolean>(false);
   const [step, setStep] = useState(0);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<string | null>(null);
+  // const [editingTodo, setEditingTodo] = useState<string | null>(null);
 
   const { getParams } = useQueryParams();
 
@@ -75,7 +92,7 @@ const TodoForm: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const getTodos = async (authToken: string) => {
-    const response = await axios.get("https://api.glenwebdev.space/tasks", {
+    const response = await axios.get("http://localhost:3000/tasks", {
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
@@ -94,13 +111,20 @@ const TodoForm: React.FC = () => {
       const cancelledTodos = response.data.filter(
         (todo: Todo) => todo.status === "CANCELLED"
       );
-
-      setTodos([
-        ...pendingTodos,
-        ...inProgressTodos,
-        ...completedTodos,
-        ...cancelledTodos,
-      ]);
+      const postponedTodos = response.data.filter(
+        (todo: Todo) => todo.status === "POSTPONED"
+      );
+      const notStartedTodos = response.data.filter(
+        (todo: Todo) => todo.status === "NOT_STARTED"
+      );
+      setTodos({
+        pending: pendingTodos,
+        inProgress: inProgressTodos,
+        completed: completedTodos,
+        cancelled: cancelledTodos,
+        postponed: postponedTodos,
+        notStarted: notStartedTodos,
+      });
     } else {
       message.error("Failed to fetch todos");
     }
@@ -112,7 +136,7 @@ const TodoForm: React.FC = () => {
         try {
           setLoading(true);
           const response = await axios.post(
-            "https://api.glenwebdev.space/users/login",
+            "http://localhost:3000/users/login",
             {
               email: name,
               password: id,
@@ -176,11 +200,17 @@ const TodoForm: React.FC = () => {
       employeeId: id as string,
       id: form.getFieldValue("id") || undefined,
     };
-    setTodos([...todos, newTodo]);
+    // setTodos({
+    //   ...todos,
+    //   [newTodo.status as keyof Todos]: [
+    //     ...todos[newTodo.status as keyof Todos],
+    //     newTodo,
+    //   ],
+    // });
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://api.glenwebdev.space/tasks",
+        "http://localhost:3000/tasks",
         { todos: [newTodo] },
         {
           headers: {
@@ -205,22 +235,41 @@ const TodoForm: React.FC = () => {
     form.resetFields();
   };
 
-  const handleDelete = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-    axios.delete(`https://api.glenwebdev.space/tasks/${id}`, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
+  const handleDelete = async (id: string) => {
+    // const todo = Object.values(todos)
+    //   .flat()
+    //   .find((todo: Todo) => todo.id === id);
+    // if (!todo) return;
+    // setTodos({
+    //   ...todos,
+    //   [todo.status as keyof Todos]: todos[todo.status as keyof Todos].filter(
+    //     (todo: Todo) => todo.id !== id
+    //   ),
+    // });
+    try {
+      const response = await axios.delete(`http://localhost:3000/tasks/${id}`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      getTodos(authToken as string);
+      if (response.status === 200 || response.status === 201) {
+        message.success("Todo deleted successfully!");
+      } else {
+        message.error("Failed to delete todo");
+      }
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+      message.error("Failed to delete todo");
+    }
   };
 
   const handleElaborate = async () => {
     try {
       setLoadingAI(true);
       const title = form.getFieldValue("title") || "a general task";
-      const description = form.getFieldValue("description") || "";
 
-      const prompt = `Please elaborate on this task with professional, detailed language suitable for a senior manager's review.Important: make it sound humanlike as much as possible. Make the response like a small brief not exceeding 100 words. Focus only on enhancing the task description with relevant details. Title: "${title}". Initial Notes: "${description}".`;
+      const prompt = `Please elaborate on this task with professional, detailed language suitable for a senior manager's review.Important: make it sound humanlike as much as possible. Please elaborate on the following completed tasks in a way that would be suitable for a project update or submission. For each task, provide a more detailed explanation not exceeding 100 words of what was accomplished, the impact of the work, and any relevant context or details. The goal is to create a clear and informative summary of the progress made. give me the text directly dont add anything about the prompt, only give the **Elaboration:**, dont make it more than a 100 wrods, Initial Notes: "${title}".`;
 
       // OpenAI API call (commented out)
       // const res = await axios.post(
@@ -268,49 +317,45 @@ const TodoForm: React.FC = () => {
     }
   };
 
-  const handleEdit = (todo: Todo) => {
-    setDate(dayjs(todo.date));
-    setIsForAWeek(todo.isForAWeek);
-    setEditingTodo(todo.id || null);
+  // const handleEdit = (todo: Todo) => {
+  //   setDate(dayjs(todo.date));
+  //   setIsForAWeek(todo.isForAWeek);
+  //   setEditingTodo(todo.id || null);
 
-    form.setFieldsValue({
-      title: todo.title,
-      description: todo.description,
-      status: todo.status,
-      priority: todo.priority,
-      id: todo.id,
-    });
-  };
+  //   form.setFieldsValue({
+  //     title: todo.title,
+  //     description: todo.description,
+  //     status: todo.status,
+  //     priority: todo.priority,
+  //     id: todo.id,
+  //   });
+  // };
 
-  const updateTodo = () => {
-    const updatedTodo = {
-      date: date,
-      isForAWeek: isForAWeek,
-      title: form.getFieldValue("title"),
-      description: form.getFieldValue("description"),
-      status: editingTask.getFieldValue("status"),
-      priority: editingTask.getFieldValue("priority"),
-      id: form.getFieldValue("id"),
-      employeeId: id as string,
-    };
-    try {
-      axios.put(
-        `https://api.glenwebdev.space/tasks/${updatedTodo.id}`,
-        updatedTodo,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-      getTodos(authToken as string);
-      message.success("Todo updated successfully!");
-      setEditingTodo(null);
-    } catch (err) {
-      console.error(err);
-      message.error("Failed to update todo");
-    }
-  };
+  // const updateTodo = () => {
+  //   const updatedTodo = {
+  //     date: date,
+  //     isForAWeek: isForAWeek,
+  //     title: form.getFieldValue("title"),
+  //     description: form.getFieldValue("description"),
+  //     status: editingTask.getFieldValue("status"),
+  //     priority: editingTask.getFieldValue("priority"),
+  //     id: form.getFieldValue("id"),
+  //     employeeId: id as string,
+  //   };
+  //   try {
+  //     axios.put(`http://localhost:3000/tasks/${updatedTodo.id}`, updatedTodo, {
+  //       headers: {
+  //         Authorization: `Bearer ${authToken}`,
+  //       },
+  //     });
+  //     getTodos(authToken as string);
+  //     message.success("Todo updated successfully!");
+  //     setEditingTodo(null);
+  //   } catch (err) {
+  //     console.error(err);
+  //     message.error("Failed to update todo");
+  //   }
+  // };
   if (loading) {
     return <Spin />;
   }
@@ -322,7 +367,7 @@ const TodoForm: React.FC = () => {
         items={[
           {
             key: "1",
-            label: "📝 Create Todo",
+            label: "📝 Create Your Tasks",
             children: (
               <>
                 <Steps
@@ -332,7 +377,7 @@ const TodoForm: React.FC = () => {
                   className="mb-6"
                 >
                   <Step title="Set Duration & Date" />
-                  <Step title="Enter Todo Details" />
+                  <Step title="Enter Tasks" />
                 </Steps>
 
                 {step === 0 && (
@@ -365,7 +410,7 @@ const TodoForm: React.FC = () => {
                       status: "PENDING",
                       priority: "MEDIUM",
                     }}
-                    disabled={editingTodo !== null}
+                    // disabled={editingTodo !== null}
                   >
                     <Form.Item
                       name="title"
@@ -374,8 +419,16 @@ const TodoForm: React.FC = () => {
                         { required: true, message: "Please enter a title" },
                       ]}
                     >
-                      <Input placeholder="Enter todo title" />
+                      <TextArea rows={6} placeholder="Enter Your Task" />
                     </Form.Item>
+                    <Button
+                      onClick={handleElaborate}
+                      loading={loadingAI}
+                      icon={<RobotOutlined />}
+                      className="mb-4"
+                    >
+                      Elaborate with AI
+                    </Button>
 
                     <Form.Item
                       name="description"
@@ -392,14 +445,6 @@ const TodoForm: React.FC = () => {
                         placeholder="Enter detailed description"
                       />
                     </Form.Item>
-                    <Button
-                      onClick={handleElaborate}
-                      loading={loadingAI}
-                      icon={<RobotOutlined />}
-                      className="mb-4"
-                    >
-                      Elaborate with AI
-                    </Button>
 
                     <div className="grid xl:grid-cols-2 grid-cols-1 gap-4">
                       <Form.Item
@@ -449,7 +494,7 @@ const TodoForm: React.FC = () => {
                           icon={<PlusOutlined />}
                           block
                         >
-                          {editingTodo === null ? "Add Todo" : "Update Todo"}
+                          Add Task
                         </Button>
                       </Form.Item>
                     </div>
@@ -464,134 +509,48 @@ const TodoForm: React.FC = () => {
       <Content>
         <div className="flex-1 bg-white p-4 rounded-md shadow-sm">
           <h1 className="text-2xl font-bold m-0">
-            Good {getTimeOfDay()} <span className="capitalize">{name}</span>
+            Good {getTimeOfDay()}{" "}
+            <span className="capitalize">{name} (🗂️ Your tasks)</span>
           </h1>
 
-          <h2 className="text-xl font-bold m-0">🗂️ Your tasks</h2>
-
-          {todos.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[75vh] overflow-y-auto">
-              {todos.map((todo: Todo) => (
-                <Card
-                  key={todo.title}
-                  title={todo.title}
-                  className="shadow-sm"
-                  extra={
-                    <div className="flex gap-2">
-                      {editingTodo === todo.id ? (
-                        <Button
-                          type="primary"
-                          size="small"
-                          shape="round"
-                          onClick={updateTodo}
-                        >
-                          Update
-                        </Button>
-                      ) : (
-                        <Button
-                          type="primary"
-                          size="small"
-                          shape="round"
-                          onClick={() => handleEdit(todo)}
-                        >
-                          Edit
-                        </Button>
-                      )}
-                      <Popconfirm
-                        title="Are you sure you want to delete this todo?"
-                        onConfirm={() => handleDelete(todo.id as string)}
-                        onCancel={() => {}}
-                        okText="Yes"
-                        cancelText="No"
-                      >
-                        <Button
-                          type="primary"
-                          danger
-                          size="small"
-                          shape="round"
-                        >
-                          Delete
-                        </Button>
-                      </Popconfirm>
-                    </div>
-                  }
-                >
-                  <Collapse
-                    items={[
-                      {
-                        key: "1",
-                        label: (
-                          <span className="text-sm text-gray-600 mb-2">
-                            {todo.description.length > 10
-                              ? todo.description.slice(0, 30) + "..."
-                              : todo.description}
-                          </span>
-                        ),
-                        children: (
-                          <p className="text-sm text-gray-600 mb-2">
-                            {todo.description}
-                          </p>
-                        ),
-                      },
-                    ]}
+          <div className="grid xl:grid-cols-3 grid-cols-1 gap-4 mt-4">
+            <div className="bg-gray-200 px-4 py-4 rounded-lg">
+              <h2 className="text-lg font-normal">Ongoing Tasks</h2>
+              <div className="flex flex-col gap-4 mt-4">
+                {todos.inProgress.map((todo) => (
+                  <TrelloCard
+                    key={todo.id}
+                    cardData={todo as CardData}
+                    handleDelete={() => handleDelete(todo.id as string)}
                   />
-
-                  <Form layout="vertical" form={editingTask}>
-                    <div className="flex flex-wrap text-xs gap-2 mb-2 mt-4">
-                      <Form.Item
-                        name="status"
-                        label="Status"
-                        rules={[
-                          { required: true, message: "Please select a status" },
-                        ]}
-                        initialValue={todo.status}
-                      >
-                        <Select
-                          placeholder="Select status"
-                          options={statusOptions}
-                          disabled={editingTodo !== todo.id}
-                        />
-                      </Form.Item>
-
-                      <Form.Item
-                        name="priority"
-                        label="Priority"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select a priority",
-                          },
-                        ]}
-                        initialValue={todo.priority}
-                      >
-                        <Select
-                          placeholder="Select priority"
-                          options={priorityOptions}
-                          disabled={editingTodo !== todo.id}
-                        />
-                      </Form.Item>
-                    </div>
-                  </Form>
-
-                  <p className="text-xs text-gray-500">
-                    <strong>Employee ID:</strong> {todo.employeeId}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    <strong>Date:</strong>{" "}
-                    {new Date(todo.date).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    <strong>Duration:</strong>{" "}
-                    {todo.isForAWeek ? "For a week" : "For a day"}
-                  </p>
-                </Card>
-              ))}
+                ))}
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500">
-              No todos yet. Add one from the form.
-            </p>
-          )}
+            <div className="bg-gray-200 px-4 py-4 rounded-lg">
+              <h2 className="text-lg font-normal">Pending Tasks</h2>
+              <div className="flex flex-col gap-4 mt-4">
+                {todos.pending.map((todo) => (
+                  <TrelloCard
+                    key={todo.id}
+                    cardData={todo as CardData}
+                    handleDelete={() => handleDelete(todo.id as string)}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="bg-gray-200 px-4 py-4 rounded-lg">
+              <h2 className="text-lg font-normal">Completed Tasks</h2>
+              <div className="flex flex-col gap-4 mt-4">
+                {todos.completed.map((todo) => (
+                  <TrelloCard
+                    key={todo.id}
+                    cardData={todo as CardData}
+                    handleDelete={() => handleDelete(todo.id as string)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </Content>
     </Layout>
