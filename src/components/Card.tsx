@@ -1,27 +1,37 @@
 import { useState } from "react";
-import { Clock, Menu, Pencil, Trash } from "lucide-react";
-import { Button, Popconfirm } from "antd";
+import { ArrowUp, Clock, Menu, Pencil, Trash } from "lucide-react";
+import { Button, Form, FormInstance, Popconfirm, Select } from "antd";
+import { FormValues } from "./form/usetask";
+import { priorityOptions, statusOptions } from "../utils/options";
 
 export interface CardData {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  createdAt: string;
-  updatedAt: string;
-  status: string;
-  date: string;
-  isForAWeek: boolean;
-  priority: string;
-  userId: string;
-  employeeId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  status?: string;
+  date?: string;
+  isForAWeek?: boolean;
+  priority?: string;
+  userId?: string;
+  employeeId?: string;
 }
 
 export default function TrelloCard({
   cardData,
   handleDelete,
+  handleEdit,
+  editingTaskForm,
+  editingTodo,
+  updateTodo,
 }: {
   cardData: CardData;
-  handleDelete: () => void;
+  handleDelete?: () => void;
+  handleEdit?: () => void;
+  editingTaskForm?: FormInstance<FormValues>;
+  editingTodo?: string | null;
+  updateTodo?: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -50,7 +60,7 @@ export default function TrelloCard({
   const cleanDescription = cardData.description.replace(/\*\*/g, "");
 
   return (
-    <div className="flex items-center justify-center w-full">
+    <div className="flex items-center justify-center w-full transition-all duration-300">
       <div
         className="bg-white rounded-md shadow-md w-64 p-3 cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
@@ -69,15 +79,31 @@ export default function TrelloCard({
         <div className="flex flex-wrap gap-1 mb-2">
           <div
             className={`${getPriorityColor(
-              cardData.priority
+              cardData.priority as string
             )} text-xs text-white px-2 py-1 rounded-md font-medium`}
           >
             {cardData.priority}
           </div>
+          {editingTodo === cardData.id ? (
+            <Button
+              type="primary"
+              size="small"
+              className="!ml-auto"
+              onClick={updateTodo}
+            >
+              <ArrowUp size={12} />
+            </Button>
+          ) : (
+            <Button
+              type="primary"
+              size="small"
+              className="!ml-auto"
+              onClick={handleEdit}
+            >
+              <Pencil size={12} />
+            </Button>
+          )}
 
-          <Button type="primary" size="small" className="!ml-auto">
-            <Pencil size={12} />
-          </Button>
           <Popconfirm
             title="Are you sure you want to delete this todo?"
             onConfirm={handleDelete}
@@ -95,12 +121,41 @@ export default function TrelloCard({
         <p className="text-sm text-gray-600 mb-3 overflow-hidden line-clamp-2">
           {cleanDescription}
         </p>
+        {editingTodo === cardData.id && (
+          <Form form={editingTaskForm} layout="vertical">
+            <Form.Item
+              name="status"
+              label="Status"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a status",
+                },
+              ]}
+            >
+              <Select placeholder="Select status" options={statusOptions} />
+            </Form.Item>
+
+            <Form.Item
+              name="priority"
+              label="Priority"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a priority",
+                },
+              ]}
+            >
+              <Select placeholder="Select priority" options={priorityOptions} />
+            </Form.Item>
+          </Form>
+        )}
 
         {/* Card Footer */}
         <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
           <div className="flex items-center text-xs text-gray-500">
             <Clock size={14} className="mr-1" />
-            <span>{formatDate(cardData.date)}</span>
+            <span>{formatDate(cardData.date as string)}</span>
           </div>
           <div className="text-xs text-gray-500">ID: {cardData.employeeId}</div>
         </div>
