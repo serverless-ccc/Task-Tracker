@@ -1,22 +1,9 @@
-import { useState } from "react";
-import { ArrowUp, Clock, Menu, Pencil, Trash } from "lucide-react";
+import { ArrowUp, Clock, Pencil, Trash } from "lucide-react";
 import { Button, Form, FormInstance, Popconfirm, Select } from "antd";
-import { FormValues } from "./form/usetask";
-import { priorityOptions, statusOptions } from "../utils/options";
-
-export interface CardData {
-  id?: string;
-  title: string;
-  description: string;
-  createdAt?: string;
-  updatedAt?: string;
-  status?: string;
-  date?: string;
-  isForAWeek?: boolean;
-  priority?: string;
-  userId?: string;
-  employeeId?: string;
-}
+import { FormValues, Task } from "../store/useKanbanStore";
+import { priorityOptions } from "../utils/options";
+import useUserStore from "../store/useUserStore";
+import TextArea from "antd/es/input/TextArea";
 
 export default function TrelloCard({
   cardData,
@@ -26,20 +13,22 @@ export default function TrelloCard({
   editingTodo,
   updateTodo,
 }: {
-  cardData: CardData;
+  cardData: Task;
   handleDelete?: () => void;
   handleEdit?: () => void;
   editingTaskForm?: FormInstance<FormValues>;
   editingTodo?: string | null;
   updateTodo?: () => void;
 }) {
-  const [isHovered, setIsHovered] = useState(false);
+  const { profile } = useUserStore();
 
-  // Using the exact data provided
-  // Helper functions
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   // Determine label color based on priority
@@ -51,30 +40,26 @@ export default function TrelloCard({
         return "bg-yellow-500";
       case "LOW":
         return "bg-blue-500";
+      case "COMPLETED":
+        return "bg-green-500";
+      case "IN_PROGRESS":
+        return "bg-blue-500";
+      case "PENDING":
+        return "bg-yellow-500";
       default:
         return "bg-gray-500";
     }
   };
 
   // Clean description text (remove markdown and limit to 2 lines)
-  const cleanDescription = cardData.description.replace(/\*\*/g, "");
+  const cleanDescription =
+    profile?.role === "ADMIN"
+      ? cardData.description
+      : cardData?.description?.replace(/\*\*/g, "");
 
   return (
     <div className="flex items-center justify-center w-full transition-all duration-300">
-      <div
-        className="bg-white rounded-md shadow-md w-64 p-3 cursor-pointer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* Card Edit Menu Button */}
-        {isHovered && (
-          <div className="absolute top-2 right-2">
-            <button className="text-gray-500 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100">
-              <Menu size={16} />
-            </button>
-          </div>
-        )}
-
+      <div className="bg-white rounded-md shadow-md w-64 p-3 cursor-pointer">
         {/* Priority and Status as Labels */}
         <div className="flex flex-wrap gap-1 mb-2">
           <div
@@ -84,58 +69,79 @@ export default function TrelloCard({
           >
             {cardData.priority}
           </div>
-          {editingTodo === cardData.id ? (
-            <Button
-              type="primary"
-              size="small"
-              className="!ml-auto"
-              onClick={updateTodo}
-            >
-              <ArrowUp size={12} />
-            </Button>
-          ) : (
-            <Button
-              type="primary"
-              size="small"
-              className="!ml-auto"
-              onClick={handleEdit}
-            >
-              <Pencil size={12} />
-            </Button>
+          {profile?.role !== "ADMIN" && (
+            <>
+              {editingTodo === cardData.id ? (
+                <Button
+                  type="primary"
+                  size="small"
+                  className="!ml-auto"
+                  onClick={updateTodo}
+                >
+                  <ArrowUp size={12} />
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  size="small"
+                  className="!ml-auto"
+                  onClick={handleEdit}
+                >
+                  <Pencil size={12} />
+                </Button>
+              )}
+            </>
           )}
 
-          <Popconfirm
-            title="Are you sure you want to delete this todo?"
-            onConfirm={handleDelete}
-          >
-            <Button type="default" size="small">
-              <Trash size={12} />
-            </Button>
-          </Popconfirm>
+          {profile?.role !== "ADMIN" && (
+            <Popconfirm
+              title="Are you sure you want to delete this todo?"
+              onConfirm={handleDelete}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type="default" size="small">
+                <Trash size={12} />
+              </Button>
+            </Popconfirm>
+          )}
+          {profile?.role === "ADMIN" && (
+            <div
+              className={`${getPriorityColor(
+                cardData.status as string
+              )} text-xs text-white px-2 py-1 rounded-md font-medium ml-auto`}
+            >
+              {cardData.status}
+            </div>
+          )}
         </div>
 
         {/* Card Title */}
-        <h3 className="font-medium text-gray-800 mb-2">{cardData.title}</h3>
+        {editingTodo !== cardData.id ? (
+          <>
+            <h2 className="text-sm text-gray-700 font-semibold mb-2">
+              {cardData.user?.name}
+            </h2>
+            <h3 className="font-medium text-gray-700 mb-2">{cardData.title}</h3>
 
-        {/* Card Description - Limited to 2 lines */}
-        <p className="text-sm text-gray-600 mb-3 overflow-hidden line-clamp-2">
-          {cleanDescription}
-        </p>
-        {editingTodo === cardData.id && (
-          <Form form={editingTaskForm} layout="vertical">
+            <p className="text-sm text-gray-600 mb-3 overflow-hidden line-clamp-2">
+              {cleanDescription}
+            </p>
+          </>
+        ) : (
+          <Form
+            form={editingTaskForm}
+            layout="vertical"
+            size="small"
+            onFinish={updateTodo}
+          >
             <Form.Item
-              name="status"
-              label="Status"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select a status",
-                },
-              ]}
+              name="title"
+              label="Title"
+              rules={[{ required: true, message: "Please enter a title" }]}
             >
-              <Select placeholder="Select status" options={statusOptions} />
+              <TextArea rows={4} placeholder="Enter Your Task" />
             </Form.Item>
-
             <Form.Item
               name="priority"
               label="Priority"
@@ -157,7 +163,9 @@ export default function TrelloCard({
             <Clock size={14} className="mr-1" />
             <span>{formatDate(cardData.date as string)}</span>
           </div>
-          <div className="text-xs text-gray-500">ID: {cardData.employeeId}</div>
+          <div className="flex items-center text-xs text-gray-500">
+            <span>id: {cardData.id?.slice(0, 5)}</span>
+          </div>
         </div>
       </div>
     </div>

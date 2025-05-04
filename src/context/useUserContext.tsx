@@ -6,6 +6,9 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
+  employeeId: string;
+  role: string;
+  picture: string;
   // Add other relevant fields as necessary
 }
 
@@ -35,10 +38,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-    if (token) {
-      fetchProfile();
-    }
+    fetchProfile();
   }, []);
 
   return (

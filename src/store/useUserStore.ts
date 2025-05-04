@@ -14,6 +14,7 @@ type Actions = {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setToken: (token: string | null) => void;
+  logout: () => void;
 };
 
 const useUserStore = create<State & Actions>()(
@@ -28,6 +29,10 @@ const useUserStore = create<State & Actions>()(
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
       setToken: (token) => set({ token }),
+      logout: () => {
+        set({ profile: null, token: null });
+        window.location.href = "/login";
+      },
     }),
     {
       name: "user",

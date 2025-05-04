@@ -1,25 +1,29 @@
 import React, { Suspense } from "react";
 import "./App.css";
-import DailyTaskTypeform from "./components/form/Form";
 import { UserProvider } from "./context/useUserContext";
+import { createBrowserRouter, RouterProvider } from "react-router";
 
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-const Submitted = React.lazy(() => import("./components/form/Submitted"));
+const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard"));
 const LoginForm = React.lazy(() => import("./components/login/Login"));
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Dashboard />,
+  },
+  {
+    path: "/login",
+    element: <LoginForm />,
+  },
+]);
 
 function App() {
   return (
-    <BrowserRouter>
-      <UserProvider>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<DailyTaskTypeform />} />
-            <Route path="/submited" element={<Submitted />} />
-            <Route path="/login" element={<LoginForm />} />
-          </Routes>
-        </Suspense>
-      </UserProvider>
-    </BrowserRouter>
+    <UserProvider>
+      <Suspense fallback={<div>Loading...</div>}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </UserProvider>
   );
 }
 
