@@ -2,7 +2,7 @@ import React, { useState, DragEvent } from "react";
 import { Trash2, Flame, PlusIcon, WandSparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
-import TrelloCard, { CardData } from "../Card";
+import TrelloCard from "../Card";
 import useKanbanStore, { ColumnType, Task } from "../../store/useKanbanStore";
 import { useKanban } from "./useKanban";
 import { Form, FormInstance, Button, Select, Modal, DatePicker } from "antd";
@@ -320,7 +320,7 @@ const Card = ({
         className="cursor-grab  active:cursor-grabbing"
       >
         <TrelloCard
-          cardData={cardData as CardData}
+          cardData={cardData as Task}
           editingTaskForm={editingTaskForm}
           editingTodo={editingTask as string}
           handleEdit={() => handleEdit(cardData as Task)}

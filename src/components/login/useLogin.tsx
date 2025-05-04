@@ -1,14 +1,13 @@
 import { useForm } from "antd/lib/form/Form";
-import { useNavigate } from "react-router";
-import useUserStore from "../../store/useUserStore";
-import { useEffect } from "react";
+
+type FormValues = {
+  email: string;
+  password: string;
+};
 export const useLogin = () => {
   const [loginForm] = useForm();
-  const { profile } = useUserStore();
 
-  const navigate = useNavigate();
-
-  const onFinish = (values: any) => {
+  const onFinish = (values: FormValues) => {
     console.log(values);
     // const body = {
     //   email: values.email,
