@@ -9,6 +9,7 @@ import { Form, FormInstance, Button, Select, Modal, DatePicker } from "antd";
 import { priorityOptions } from "../../utils/options";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
+import { elaborateTaskWithGroq } from "../../utils/groqTaskElaborator";
 
 export const Kanban = () => {
   const {
@@ -392,6 +393,13 @@ const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   form.setFieldValue("status", column);
 
+  const handleElaborate = async () => {
+    const elaboratedTask = await elaborateTaskWithGroq(
+      form.getFieldValue("title")
+    );
+    form.setFieldValue("description", elaboratedTask);
+  };
+
   return (
     <>
       <Button
@@ -429,7 +437,7 @@ const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
                 <TextArea rows={4} placeholder="Enter Your Task" />
               </Form.Item>
               <Button
-                // onClick={handleElaborate}
+                onClick={handleElaborate}
                 // loading={loadingAI}
                 icon={<WandSparkles size={12} />}
                 className="mb-4"
