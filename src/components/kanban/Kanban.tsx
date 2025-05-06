@@ -391,13 +391,21 @@ type AddCardProps = {
 
 const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingAI, setLoadingAI] = useState(false);
   form.setFieldValue("status", column);
 
   const handleElaborate = async () => {
-    const elaboratedTask = await elaborateTaskWithGroq(
-      form.getFieldValue("title")
-    );
-    form.setFieldValue("description", elaboratedTask);
+    setLoadingAI(true);
+    try {
+      const elaboratedTask = await elaborateTaskWithGroq(
+        form.getFieldValue("title")
+      );
+      form.setFieldValue("description", elaboratedTask);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
   return (
@@ -438,7 +446,7 @@ const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
               </Form.Item>
               <Button
                 onClick={handleElaborate}
-                // loading={loadingAI}
+                loading={loadingAI}
                 icon={<WandSparkles size={12} />}
                 className="mb-4"
               >
