@@ -55,7 +55,7 @@ const Board = ({
       <Column
         title="Pending"
         column="PENDING"
-        headingColor="text-neutral-500"
+        headingColor="text-neutral-100"
         cards={tasks}
         setCards={setTasks}
         form={form}
@@ -225,7 +225,7 @@ const Column = ({
       style={{ scrollbarWidth: "none" }}
     >
       <div className="mb-3 flex items-center justify-between sticky top-0 bg-neutral-900 z-10 pt-6">
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full px-3 py-2 bg-black/50 rounded-lg">
           <h3 className={`font-medium ${headingColor}`}>{title}</h3>
           <div className="flex items-center justify-end">
             <AddCard column={column} form={form} handleSubmit={handleSubmit} />

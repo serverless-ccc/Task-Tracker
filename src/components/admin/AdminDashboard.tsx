@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import useKanbanStore from "../../store/useKanbanStore";
 import dayjs from "dayjs";
+import clsx from "clsx";
+import { Avatar } from "antd";
 
 const AdminDashboard: React.FC = () => {
   const tasks = useKanbanStore((state) => state.tasks);
@@ -62,9 +64,9 @@ const AdminDashboard: React.FC = () => {
       </div>
       <div className="col-span-8 bg-gray-50 w-full rounded-3xl p-6">
         <h2 className="text-xl font-normal mb-6">Todays Tasks</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {tasksToday?.slice(0, 3).map((task) => (
-            <TrelloCard
+        <div className="grid grid-cols-2 gap-4">
+          {tasksToday?.slice(0, 4).map((task) => (
+            <TrelloCardWithBorder
               key={task.id}
               title={task.title as string}
               description={task.description}
@@ -85,17 +87,43 @@ interface TrelloCardProps {
   labels?: string[];
   dueDate?: string;
   avatarUrl?: string;
+  name?: string;
 }
 
-export const TrelloCard: React.FC<TrelloCardProps> = ({
+export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
   title,
   description,
   labels = [],
   dueDate,
-  avatarUrl,
+  name,
 }) => {
+  const limitWords = (text: string, limit: number) => {
+    const words = text.split(" ");
+    if (words.length > limit) {
+      return words.slice(0, limit).join(" ") + "...";
+    }
+    return text;
+  };
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "COMPLETED":
+        return "border-t-green-500";
+      case "IN_PROGRESS":
+        return "border-t-blue-500";
+      case "PENDING":
+        return "border-t-yellow-500";
+      default:
+        return "border-t-gray-500";
+    }
+  };
+
   return (
-    <div className="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all w-full max-w-sm">
+    <div
+      className={clsx(
+        "bg-white min-h-[180px] relative p-4 col-span-1 border-t-4 rounded-br-2xl rounded-bl-2xl shadow-md hover:shadow-lg transition-all w-full max-w-sm",
+        getPriorityColor(labels[1])
+      )}
+    >
       <div className="flex flex-wrap gap-2 mb-2">
         {labels.map((label, idx) => (
           <span
@@ -107,17 +135,19 @@ export const TrelloCard: React.FC<TrelloCardProps> = ({
         ))}
       </div>
 
-      <h3 className="font-semibold text-lg text-gray-800 mb-1">{title}</h3>
+      <h3 className="font-semibold text-lg text-gray-800 mt-4 mb-1">{title}</h3>
       {description && (
-        <p className="text-sm text-gray-600 line-clamp-3">{description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2 overflow-hidden text-ellipsis">
+          {limitWords(description, 10)}
+        </p>
       )}
 
-      <div className="flex justify-between items-center mt-4">
-        <img
-          src={avatarUrl || "https://i.pravatar.cc/40"}
-          alt="Avatar"
-          className="w-8 h-8 rounded-full object-cover"
-        />
+      <div className="flex justify-between items-center mt-4 w-full absolute bottom-0 left-0 px-4 py-4">
+        {name && (
+          <span className="text-xs text-gray-500">
+            <Avatar src={name} />
+          </span>
+        )}
 
         {dueDate && (
           <span className="text-xs text-gray-500">

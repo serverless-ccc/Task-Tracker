@@ -1,4 +1,4 @@
-import { Select } from "antd";
+import { Avatar, Select } from "antd";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import TrelloCard from "../Card";
@@ -6,6 +6,7 @@ import useKanbanStore, { Task } from "../../store/useKanbanStore";
 import { priorityOptions, statusOptions } from "../../utils/options";
 import { Grid, List } from "lucide-react";
 import dayjs from "dayjs";
+import clsx from "clsx";
 
 const { Option } = Select;
 
@@ -67,7 +68,7 @@ export const CardStack = () => {
                   description={todo.description}
                   labels={[todo.priority as string, todo.status as string]}
                   dueDate={todo.createdAt}
-                  name={todo.user?.name}
+                  name={todo.user?.picture}
                 />
               ))}
             </div>
@@ -108,32 +109,45 @@ export const CardStack = () => {
     <div>
       {/* Filters */}
       <div className="flex gap-4 mb-4 items-center">
-        <Select
-          style={{ width: 180 }}
-          value={selectedUser}
-          onChange={(val) => setSelectedUser(val)}
-        >
-          <Option value="All">All Users</Option>
-          {userNames.map((name) => (
-            <Option key={name} value={name}>
-              {name}
-            </Option>
-          ))}
-        </Select>
+        <div className="flex flex-col">
+          <label htmlFor="user-select">Users</label>
+          <Select
+            id="user-select"
+            style={{ width: 180 }}
+            value={selectedUser}
+            onChange={(val) => setSelectedUser(val)}
+          >
+            <Option value="All">All Users</Option>
+            {userNames.map((name) => (
+              <Option key={name} value={name}>
+                {name}
+              </Option>
+            ))}
+          </Select>
+        </div>
 
-        <Select
-          style={{ width: 140 }}
-          value={priority}
-          onChange={(val) => setPriority(val)}
-          options={priorityOptions}
-        />
+        <div className="flex flex-col">
+          <label htmlFor="priority-select">Priority</label>
+          <Select
+            id="priority-select"
+            style={{ width: 140 }}
+            value={priority}
+            onChange={(val) => setPriority(val)}
+            options={priorityOptions}
+          />
+        </div>
 
-        <Select
-          style={{ width: 160 }}
-          value={status}
-          onChange={(val) => setStatus(val)}
-          options={statusOptions}
-        />
+        <div className="flex flex-col">
+          <label htmlFor="status-select">Status</label>
+          <Select
+            id="status-select"
+            style={{ width: 160 }}
+            value={status}
+            onChange={(val) => setStatus(val)}
+            options={statusOptions}
+          />
+        </div>
+
         {gridView ? (
           <Grid
             onClick={() => setGridView(false)}
@@ -172,13 +186,38 @@ export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
   dueDate,
   name,
 }) => {
+  const limitWords = (text: string, limit: number) => {
+    const words = text.split(" ");
+    if (words.length > limit) {
+      return words.slice(0, limit).join(" ") + "...";
+    }
+    return text;
+  };
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "COMPLETED":
+        return "border-t-green-500";
+      case "IN_PROGRESS":
+        return "border-t-blue-500";
+      case "PENDING":
+        return "border-t-yellow-500";
+      default:
+        return "border-t-gray-500";
+    }
+  };
+
   return (
-    <div className="bg-white p-4 col-span-3 rounded-2xl shadow-md hover:shadow-lg transition-all w-full max-w-sm">
+    <div
+      className={clsx(
+        "bg-white min-h-[210px] relative p-4 col-span-3 border-t-4 rounded-br-2xl rounded-bl-2xl shadow-md hover:shadow-lg transition-all w-full max-w-sm",
+        getPriorityColor(labels[1])
+      )}
+    >
       <div className="flex flex-wrap gap-2 mb-2">
         {labels.map((label, idx) => (
           <span
             key={idx}
-            className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium"
+            className="text-xs bg-blue-100 text-blue-800 px-2 mt-2 py-0.5 rounded-full font-medium"
           >
             {label}
           </span>
@@ -187,11 +226,17 @@ export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
 
       <h3 className="font-semibold text-lg text-gray-800 mb-1">{title}</h3>
       {description && (
-        <p className="text-sm text-gray-600 line-clamp-3">{description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2 overflow-hidden text-ellipsis">
+          {limitWords(description, 10)}
+        </p>
       )}
 
-      <div className="flex justify-between items-center mt-4">
-        {name && <span className="text-xs text-gray-500">{name}</span>}
+      <div className="flex justify-between items-center mt-4 w-full absolute bottom-0 left-0 px-4 py-4">
+        {name && (
+          <span className="text-xs text-gray-500">
+            <Avatar src={name} />
+          </span>
+        )}
 
         {dueDate && (
           <span className="text-xs text-gray-500">
