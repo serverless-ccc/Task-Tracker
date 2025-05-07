@@ -89,11 +89,16 @@ class APIClient {
           } catch (err) {
             processQueue(err, null);
             localStorage.clear(); // or just remove token keys
-            // You can redirect user to login here if needed
+            window.location.href = "/login"; // Redirect to login page
             return Promise.reject(err);
           } finally {
             isRefreshing = false;
           }
+        }
+        // Handle other 401 errors (not refresh token related)
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          window.location.href = "/login";
         }
         console.error("❌ API Error:", error.response?.data || error.message);
         return Promise.reject(error);

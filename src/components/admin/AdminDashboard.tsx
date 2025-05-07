@@ -23,46 +23,54 @@ const AdminDashboard: React.FC = () => {
   }, [fetchTasks]);
   return (
     <div className="grid grid-cols-12 gap-6">
-      <div className="col-span-4 bg-gray-900 text-white p-6 rounded-3xl shadow-lg">
+      <div className="md:col-span-4 col-span-12 bg-gray-900 text-white p-6 rounded-3xl shadow-lg">
         <h2 className="text-xl font-normal mb-6">Overall Information</h2>
 
         <div className="flex justify-between items-center mb-8">
           <div>
             <span className="text-4xl font-medium">{tasks?.length}</span>
-            <p className="text-gray-400 text-sm">Tasks done for all time</p>
+            <p className="text-gray-400 xl:text-sm text-[12px] font-bold">
+              Tasks done for all time
+            </p>
           </div>
           <div>
             <span className="text-4xl font-medium">
               {tasks?.filter((task) => task.status === "CANCELLED").length}
             </span>
-            <p className="text-gray-400 text-sm">tasks are stopped</p>
+            <p className="text-gray-400 xl:text-sm text-[12px] font-bold">
+              tasks are stopped
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gray-800 p-4 rounded-lg text-center">
+        <div className="grid xl:grid-cols-3 grid-cols-2 gap-4">
+          <div className="bg-gray-800 col-span-1 p-4 rounded-lg text-center">
             <span className="text-3xl font-medium block">
               {tasks?.filter((task) => task.status === "IN_PROGRESS").length}
             </span>
-            <span className="text-gray-400">Ongoing</span>
+            <span className="text-gray-400 xl:text-sm text-[12px] font-bold">
+              Ongoing
+            </span>
           </div>
-          <div className="bg-gray-800 p-4 rounded-lg text-center">
+          <div className="bg-gray-800 col-span-1 p-4 rounded-lg text-center">
             <span className="text-3xl font-medium block">
               {tasks?.filter((task) => task.status === "PENDING").length}
             </span>
-            <span className="text-sm text-gray-400 whitespace-nowrap">
+            <span className="xl:text-sm text-[12px] font-bold text-gray-400 whitespace-nowrap">
               In Progress
             </span>
           </div>
-          <div className="bg-gray-800 p-4 rounded-lg text-center">
+          <div className="bg-gray-800 col-span-1 p-4 rounded-lg text-center hidden md:block">
             <span className="text-3xl font-medium block">
               {tasks?.filter((task) => task.status === "COMPLETED").length}
             </span>
-            <span className="text-gray-400">Completed</span>
+            <span className="text-gray-400 xl:text-sm text-[12px] font-bold">
+              Completed
+            </span>
           </div>
         </div>
       </div>
-      <div className="col-span-8 bg-gray-50 w-full rounded-3xl p-6">
+      <div className="md:col-span-8 col-span-12 bg-gray-50 w-full rounded-3xl p-6">
         <h2 className="text-xl font-normal mb-6">Todays Tasks</h2>
         <div className="grid grid-cols-2 gap-4">
           {tasksToday?.slice(0, 4).map((task) => (

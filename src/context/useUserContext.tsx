@@ -38,7 +38,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    fetchProfile();
+    if (profile) {
+      fetchProfile();
+    }
   }, []);
 
   return (

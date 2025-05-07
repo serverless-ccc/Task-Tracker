@@ -53,11 +53,25 @@ export const CardStack = () => {
   // Render task stack for a single user or for all users
   const renderTaskStack = (tasks: Task[], isGrouped: boolean = false) => {
     const visibleTasks = filteredAndSorted(tasks);
+    const tasksYesterday = visibleTasks.filter((task) => {
+      const created = new Date(task.createdAt as string);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return (
+        created.getFullYear() === yesterday.getFullYear() &&
+        created.getMonth() === yesterday.getMonth() &&
+        created.getDate() === yesterday.getDate()
+      );
+    });
     if (visibleTasks.length === 0) return null;
 
     return (
-      <div style={{ marginBottom: "2rem" }}>
-        {!isGrouped && <h3 style={{ marginLeft: "1rem" }}>All Tasks</h3>}
+      <div style={{ marginBottom: "2rem", minHeight: "75vh" }}>
+        {!isGrouped && (
+          <h3 style={{ marginLeft: "1rem" }} className="text-2xl font-bold">
+            Today Tasks
+          </h3>
+        )}
         {gridView ? (
           <>
             <div className="grid grid-cols-12 gap-4">
@@ -76,7 +90,7 @@ export const CardStack = () => {
         ) : (
           <div style={wrapperStyle}>
             <ul style={cardWrapStyle}>
-              {visibleTasks.map((todo, index) => {
+              {tasksYesterday.map((todo, index) => {
                 const canDrag = index === 0;
                 return (
                   <motion.li
@@ -108,7 +122,7 @@ export const CardStack = () => {
   return (
     <div>
       {/* Filters */}
-      <div className="flex gap-4 mb-4 items-center">
+      <div className="gap-4 mb-4 items-center flex-wrap hidden  md:flex">
         <div className="flex flex-col">
           <label htmlFor="user-select">Users</label>
           <Select
@@ -126,7 +140,7 @@ export const CardStack = () => {
           </Select>
         </div>
 
-        <div className="flex flex-col">
+        <div className="md:flex flex-col">
           <label htmlFor="priority-select">Priority</label>
           <Select
             id="priority-select"
@@ -253,21 +267,22 @@ const wrapperStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  top: "65px",
 };
 
 const cardWrapStyle: React.CSSProperties = {
   position: "relative",
   maxWidth: "350px",
   width: "300px",
-  height: "350px",
+  height: "375px",
 };
 
 const cardStyle: React.CSSProperties = {
   position: "absolute",
   maxWidth: "350px",
   width: "300px",
-  height: "350px",
-  borderRadius: "8px",
+  height: "375px",
+  borderRadius: "16px",
   transformOrigin: "top center",
   listStyle: "none",
 };
