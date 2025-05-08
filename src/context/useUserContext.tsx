@@ -23,7 +23,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { profile, loading, error, setProfile, setLoading, setError } =
+  const { profile, loading, error, setProfile, setLoading, setError, token } =
     useUserStore();
 
   const fetchProfile = async () => {
@@ -38,7 +38,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    if (profile) {
+    if (token) {
       fetchProfile();
     }
   }, []);

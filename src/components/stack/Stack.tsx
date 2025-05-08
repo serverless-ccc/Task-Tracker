@@ -1,7 +1,7 @@
 import { Avatar, Select } from "antd";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import TrelloCard from "../Card";
+// import TrelloCard from "../Card";
 import useKanbanStore, { Task } from "../../store/useKanbanStore";
 import { priorityOptions, statusOptions } from "../../utils/options";
 import { Grid, List } from "lucide-react";
@@ -68,10 +68,38 @@ export const CardStack = () => {
     return (
       <div style={{ marginBottom: "2rem", minHeight: "75vh" }}>
         {!isGrouped && (
-          <h3 style={{ marginLeft: "1rem" }} className="text-2xl font-bold">
+          <h3 className="text-2xl font-medium text-gray-800 text-center mt-4">
             Today Tasks
           </h3>
         )}
+        <div
+          className="flex gap-4 overflow-scroll mt-4"
+          style={{
+            scrollbarWidth: "none",
+          }}
+        >
+          <div
+            className={clsx(
+              "border border-[#ccc] px-4 py-2 rounded-xl",
+              selectedUser === "All" && "bg-blue-500 text-white border-none"
+            )}
+            onClick={() => setSelectedUser("All")}
+          >
+            <h3 className="text-sm text-nowrap">All</h3>
+          </div>
+          {userNames.map((name) => (
+            <div
+              key={name}
+              className={clsx(
+                "border border-[#ccc] px-4 py-2 rounded-xl",
+                selectedUser === name && "bg-blue-500 text-white border-none"
+              )}
+              onClick={() => setSelectedUser(name)}
+            >
+              <h3 className="text-sm text-nowrap">{name}</h3>
+            </div>
+          ))}
+        </div>
         {gridView ? (
           <>
             <div className="grid grid-cols-12 gap-4">
@@ -262,26 +290,95 @@ export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
   );
 };
 
+interface TrelloProps {
+  cardData: Task;
+}
+
+const getRandomLightColor = () => {
+  const r = Math.floor(200 + Math.random() * 55);
+  const g = Math.floor(200 + Math.random() * 55);
+  const b = Math.floor(200 + Math.random() * 55);
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+const TrelloCard = ({ cardData }: TrelloProps) => {
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "COMPLETED":
+        return "bg-green-500";
+      case "IN_PROGRESS":
+        return "bg-blue-500";
+      case "PENDING":
+        return "bg-yellow-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+  const [bgColor, setBgColor] = useState(getRandomLightColor());
+
+  useEffect(() => {
+    setBgColor(getRandomLightColor());
+  }, []);
+
+  return (
+    <div
+      className="rounded-md shadow-md p-4 pt-8 cursor-pointer h-full"
+      style={{
+        backgroundColor: bgColor,
+      }}
+    >
+      <span
+        className={clsx(
+          getPriorityColor(cardData.status as string),
+          "text-white px-3 py-2 rounded-full font-medium"
+        )}
+      >
+        {cardData.status}
+      </span>
+      <h2 className="text-2xl first-letter:capitalize font-normal mt-4 line-clamp-2">
+        {cardData.title}
+      </h2>
+      <p className="mt-4">{dayjs(cardData.createdAt).format("DD MMM YYYY")}</p>
+      <div className="mt-4 flex justify-between items-center">
+        <span className="flex items-center gap-2">
+          <Avatar src={cardData.user?.picture} size={50} />
+          <span>
+            <span className="text-sm text-gray-500 mb-0">Task by</span>
+            <p className="text-sm font-semibold capitalize mt-0">
+              {cardData.user?.name.split(" ")[0]}
+            </p>
+          </span>
+        </span>
+        <span className="bg-black/80 px-4 py-2 rounded-full text-white">
+          <p>{cardData.priority}</p>
+        </span>
+      </div>
+      <p className="first-letter:capitalize mt-4 text-base text-gray-800 line-clamp-[8]">
+        {cardData.description}
+      </p>
+    </div>
+  );
+};
+
 const wrapperStyle: React.CSSProperties = {
   position: "relative",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  top: "65px",
+  top: "100px",
 };
 
 const cardWrapStyle: React.CSSProperties = {
   position: "relative",
-  maxWidth: "350px",
-  width: "300px",
-  height: "375px",
+  width: "100%",
+  height: "500px",
 };
 
 const cardStyle: React.CSSProperties = {
   position: "absolute",
-  maxWidth: "350px",
-  width: "300px",
-  height: "375px",
+  // maxWidth: "350px",
+  width: "100%",
+  height: "500px",
   borderRadius: "16px",
   transformOrigin: "top center",
   listStyle: "none",

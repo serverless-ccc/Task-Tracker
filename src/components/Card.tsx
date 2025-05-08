@@ -4,7 +4,6 @@ import { FormValues, Task } from "../store/useKanbanStore";
 import { priorityOptions } from "../utils/options";
 import useUserStore from "../store/useUserStore";
 import TextArea from "antd/es/input/TextArea";
-import clsx from "clsx";
 
 export default function TrelloCard({
   cardData,
@@ -51,16 +50,14 @@ export default function TrelloCard({
         return "bg-gray-500";
     }
   };
-  // Clean description text (remove markdown and limit to 2 lines)
 
+  // Clean description text (remove markdown and limit to 2 lines)
+  // const cleanDescription =
+  //   profile?.role === "ADMIN" ? cardData.description : cardData?.description;
+  // console.log(cardData.description);
   return (
     <div className="flex items-center justify-center w-full transition-all duration-300 h-full">
-      <div
-        className={clsx(
-          cardData.status === "IN_PROGRESS" && "border-blue-600 border-2",
-          "bg-white border rounded-xl shadow-md w-64 p-3 cursor-pointer h-full"
-        )}
-      >
+      <div className="bg-white rounded-md shadow-md w-64 p-3 cursor-pointer h-full">
         {/* Priority and Status as Labels */}
         <div className="flex flex-wrap gap-1 mb-2">
           <div
@@ -120,15 +117,13 @@ export default function TrelloCard({
         {/* Card Title */}
         {editingTodo !== cardData.id ? (
           <>
-            <h2 className="text-xl capitalize text-gray-700 font-semibold mb-2">
+            <h2 className="text-sm text-gray-700 font-semibold mb-2">
               {cardData.user?.name}
             </h2>
-            <h3 className="font-medium text-gray-700 mb-2 text-base line-clamp-2 overflow-hidden">
-              {cardData.title}
-            </h3>
+            <h3 className="font-medium text-gray-700 mb-2">{cardData.title}</h3>
 
-            <p className="text-base bg-yellow-200 px-4 py-2 rounded-md min-h-[150px] font-normal text-gray-600 mb-3 overflow-hidden line-clamp-6">
-              Description: {cardData.description}
+            <p className="text-sm text-gray-600 mb-3 overflow-hidden line-clamp-2">
+              {cardData.description}
             </p>
           </>
         ) : (
