@@ -1,10 +1,10 @@
-import { Avatar, Select } from "antd";
+import { Avatar, Select, Button } from "antd";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 // import TrelloCard from "../Card";
 import useKanbanStore, { Task } from "../../store/useKanbanStore";
 import { priorityOptions, statusOptions } from "../../utils/options";
-import { Grid, List } from "lucide-react";
+import { Grid, List, RefreshCw } from "lucide-react";
 import dayjs from "dayjs";
 import clsx from "clsx";
 
@@ -20,6 +20,7 @@ export const CardStack = () => {
   const moveTaskStackToEnd = useKanbanStore(
     (state) => state.moveTaskStackToEnd
   );
+  const restoreAllTasks = useKanbanStore((state) => state.restoreAllTasks);
 
   const [selectedUser, setSelectedUser] = useState<string>("All");
   const [priority, setPriority] = useState<string>("All");
@@ -150,7 +151,7 @@ export const CardStack = () => {
   return (
     <div>
       {/* Filters */}
-      <div className="gap-4 mb-4 items-center flex-wrap hidden  md:flex">
+      <div className="gap-4 mb-4 items-center flex-wrap hidden md:flex">
         <div className="flex flex-col">
           <label htmlFor="user-select">Users</label>
           <Select
@@ -190,19 +191,29 @@ export const CardStack = () => {
           />
         </div>
 
-        {gridView ? (
-          <Grid
-            onClick={() => setGridView(false)}
-            className="cursor-pointer"
-            size={20}
-          />
-        ) : (
-          <List
-            onClick={() => setGridView(true)}
-            className="cursor-pointer"
-            size={20}
-          />
-        )}
+        <div className="flex items-center gap-2">
+          {gridView ? (
+            <Grid
+              onClick={() => setGridView(false)}
+              className="cursor-pointer"
+              size={20}
+            />
+          ) : (
+            <List
+              onClick={() => setGridView(true)}
+              className="cursor-pointer"
+              size={20}
+            />
+          )}
+          <Button
+            type="primary"
+            icon={<RefreshCw size={16} />}
+            onClick={restoreAllTasks}
+            className="flex items-center gap-1"
+          >
+            Refresh
+          </Button>
+        </div>
       </div>
       {/* Render Task Stacks */}
       {selectedUser === "All"

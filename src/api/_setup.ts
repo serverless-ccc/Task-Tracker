@@ -97,7 +97,7 @@ class APIClient {
         }
         // Handle other 401 errors (not refresh token related)
         if (error.response?.status === 401) {
-          localStorage.clear();
+          useUserStore.getState().logout();
           window.location.href = "/login";
         }
         console.error("❌ API Error:", error.response?.data || error.message);

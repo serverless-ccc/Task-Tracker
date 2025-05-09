@@ -54,6 +54,7 @@ interface KanbanState {
   moveTaskToEnd: (taskId: string) => Promise<void>;
   addTask: (task: Task) => void;
   moveTaskStackToEnd: (taskId: string) => void;
+  restoreAllTasks: () => Promise<void>;
 }
 
 export type ColumnType =
@@ -231,12 +232,16 @@ const useKanbanStore = create<KanbanState>((set, get) => ({
       const taskIndex = state.tasks.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) return state;
 
-      const newTasks = [...state.tasks];
-      const [task] = newTasks.splice(taskIndex, 1);
-      newTasks.push(task);
-
+      // Remove the task instead of moving it to the end
+      const newTasks = state.tasks.filter((task) => task.id !== taskId);
       return { tasks: newTasks };
     });
+  },
+
+  // Add a function to restore all tasks
+  restoreAllTasks: async () => {
+    const { fetchTasks } = get();
+    await fetchTasks();
   },
 }));
 
