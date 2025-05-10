@@ -8,7 +8,7 @@ import { Grid, List, RefreshCw } from "lucide-react";
 import dayjs from "dayjs";
 import clsx from "clsx";
 
-const { Option } = Select;
+// const { Option } = Select;
 
 const CARD_COLORS = ["#266678", "#cb7c7a", "#36a18b", "#cda35f", "#747474"];
 const CARD_OFFSET = 10;
@@ -52,7 +52,7 @@ export const CardStack = () => {
   };
 
   // Render task stack for a single user or for all users
-  const renderTaskStack = (tasks: Task[], isGrouped: boolean = false) => {
+  const renderTaskStack = (tasks: Task[]) => {
     const visibleTasks = filteredAndSorted(tasks);
     const tasksYesterday = visibleTasks.filter((task) => {
       const created = new Date(task.createdAt as string);
@@ -68,11 +68,6 @@ export const CardStack = () => {
 
     return (
       <div style={{ marginBottom: "2rem", minHeight: "75vh" }}>
-        {!isGrouped && (
-          <h3 className="text-2xl font-medium text-gray-800 text-center mt-4">
-            Today Tasks
-          </h3>
-        )}
         <div
           className="flex gap-4 overflow-scroll mt-4"
           style={{
@@ -81,7 +76,7 @@ export const CardStack = () => {
         >
           <div
             className={clsx(
-              "border border-[#ccc] px-4 py-2 rounded-xl",
+              "border border-[#ccc] px-4 py-2 rounded-xl cursor-pointer",
               selectedUser === "All" && "bg-blue-500 text-white border-none"
             )}
             onClick={() => setSelectedUser("All")}
@@ -92,7 +87,7 @@ export const CardStack = () => {
             <div
               key={name}
               className={clsx(
-                "border border-[#ccc] px-4 py-2 rounded-xl",
+                "border border-[#ccc] px-4 py-2 rounded-xl cursor-pointer",
                 selectedUser === name && "bg-blue-500 text-white border-none"
               )}
               onClick={() => setSelectedUser(name)}
@@ -103,7 +98,7 @@ export const CardStack = () => {
         </div>
         {gridView ? (
           <>
-            <div className="grid grid-cols-12 gap-4">
+            <div className="grid grid-cols-12 gap-4 mt-4">
               {visibleTasks.map((todo) => (
                 <TrelloCardWithBorder
                   key={todo.id}
@@ -152,7 +147,7 @@ export const CardStack = () => {
     <div>
       {/* Filters */}
       <div className="gap-4 mb-4 items-center flex-wrap hidden md:flex">
-        <div className="flex flex-col">
+        {/* <div className="flex flex-col">
           <label htmlFor="user-select">Users</label>
           <Select
             id="user-select"
@@ -167,7 +162,7 @@ export const CardStack = () => {
               </Option>
             ))}
           </Select>
-        </div>
+        </div> */}
 
         <div className="md:flex flex-col">
           <label htmlFor="priority-select">Priority</label>
@@ -177,6 +172,7 @@ export const CardStack = () => {
             value={priority}
             onChange={(val) => setPriority(val)}
             options={priorityOptions}
+            allowClear
           />
         </div>
 
@@ -185,6 +181,7 @@ export const CardStack = () => {
           <Select
             id="status-select"
             style={{ width: 160 }}
+            allowClear
             value={status}
             onChange={(val) => setStatus(val)}
             options={statusOptions}
@@ -219,7 +216,7 @@ export const CardStack = () => {
       {selectedUser === "All"
         ? renderTaskStack(tasks) // Render all tasks as one stack
         : selectedUser in groupedTasks &&
-          renderTaskStack(groupedTasks[selectedUser], true)}{" "}
+          renderTaskStack(groupedTasks[selectedUser])}
       {/* Grouped by user */}
     </div>
   );
@@ -239,13 +236,6 @@ export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
   dueDate,
   name,
 }) => {
-  const limitWords = (text: string, limit: number) => {
-    const words = text.split(" ");
-    if (words.length > limit) {
-      return words.slice(0, limit).join(" ") + "...";
-    }
-    return text;
-  };
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "COMPLETED":
@@ -262,7 +252,7 @@ export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
   return (
     <div
       className={clsx(
-        "bg-white min-h-[210px] relative p-4 col-span-3 border-t-4 rounded-br-2xl rounded-bl-2xl shadow-md hover:shadow-lg transition-all w-full max-w-sm",
+        "bg-white min-h-[220px] relative p-4 col-span-3 border-t-4 rounded-br-2xl rounded-bl-2xl shadow-md hover:shadow-lg transition-all w-full max-w-sm",
         getPriorityColor(labels[1])
       )}
     >
@@ -277,10 +267,12 @@ export const TrelloCardWithBorder: React.FC<TrelloCardProps> = ({
         ))}
       </div>
 
-      <h3 className="font-semibold text-lg text-gray-800 mb-1">{title}</h3>
+      <h3 className="font-semibold text-lg line-clamp-2 text-gray-800 mb-1">
+        {title}
+      </h3>
       {description && (
         <p className="text-sm text-gray-600 line-clamp-2 overflow-hidden text-ellipsis">
-          {limitWords(description, 10)}
+          {description}
         </p>
       )}
 

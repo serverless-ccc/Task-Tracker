@@ -6,9 +6,12 @@ import { CardStack } from "../stack/Stack";
 import type { TabsProps } from "antd";
 import { Kanban } from "../kanban/Kanban";
 import AdminDashboard from "../admin/AdminDashboard";
+import { TestimonialCarousel } from "./slide";
+import useKanbanStore, { Task } from "../../store/useKanbanStore";
 
 const MainContent = () => {
   const { logout, profile } = useUserStore();
+  const tasks = useKanbanStore((state) => state.tasks);
 
   const items: TabsProps["items"] = [
     {
@@ -31,6 +34,12 @@ const MainContent = () => {
       key: "3",
       label: "Admin Dashboard",
       children: <AdminDashboard />,
+      disabled: profile?.role === "USER",
+    },
+    {
+      key: "4",
+      label: "Slide",
+      children: <TestimonialCarousel testimonials={tasks as Task[]} />,
       disabled: profile?.role === "USER",
     },
   ];
