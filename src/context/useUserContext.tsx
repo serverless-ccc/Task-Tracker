@@ -9,6 +9,8 @@ export interface UserProfile {
   employeeId: string;
   role: string;
   picture: string;
+  streak: number;
+  maxStreak: number;
   // Add other relevant fields as necessary
 }
 

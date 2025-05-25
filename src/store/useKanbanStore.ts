@@ -21,6 +21,15 @@ export interface Task {
   user?: UserProfile;
 }
 
+export interface QuickTaskType {
+  id?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface FormValues {
   id?: string;
   title?: string;
@@ -31,11 +40,28 @@ export interface FormValues {
   date?: dayjs.Dayjs;
 }
 
+export interface Stats {
+  total?: number;
+  totalCompletedTasks?: number;
+  totalPendingTasks?: number;
+  totalInProgressTasks?: number;
+  totalCancelledTasks?: number;
+  onGoingTasks?: number;
+  byStatus?: {
+    PENDING: number;
+    IN_PROGRESS: number;
+    COMPLETED: number;
+    CANCELLED: number;
+  };
+}
+
 interface KanbanState {
   // State
   tasks: Task[];
   loading: boolean;
   editingTask: string | null;
+  quickTasks: QuickTaskType[];
+  stats: Stats;
 
   // Actions
   setTasks: (tasks: Task) => void;
@@ -51,10 +77,16 @@ interface KanbanState {
     column: ColumnType,
     beforeId: string
   ) => Promise<void>;
+  moveTaskTo: (taskId: string, column: ColumnType) => Promise<void>;
   moveTaskToEnd: (taskId: string) => Promise<void>;
   addTask: (task: Task) => void;
   moveTaskStackToEnd: (taskId: string) => void;
   restoreAllTasks: () => Promise<void>;
+  addQuickTask: (quickTask: QuickTaskType) => void;
+  getQuickTasks: () => Promise<void>;
+  updateQuickTask: (id: string, status: string) => Promise<void>;
+  deleteQuickTask: (id: string) => Promise<void>;
+  getStats: () => Promise<void>;
 }
 
 export type ColumnType =
@@ -70,6 +102,14 @@ const useKanbanStore = create<KanbanState>((set, get) => ({
   tasks: [],
   loading: false,
   editingTask: null,
+  quickTasks: [],
+  stats: {
+    // totalTasks: 0,
+    totalCompletedTasks: 0,
+    totalPendingTasks: 0,
+    totalInProgressTasks: 0,
+    totalCancelledTasks: 0,
+  },
 
   // Actions for updating state
   setTasks: (tasks: Task) => set({ tasks: [...get().tasks, tasks] }),
@@ -242,6 +282,100 @@ const useKanbanStore = create<KanbanState>((set, get) => ({
   restoreAllTasks: async () => {
     const { fetchTasks } = get();
     await fetchTasks();
+  },
+
+  moveTaskTo: async (taskId: string, column: ColumnType) => {
+    const { tasks, setLoading } = get();
+    setLoading(true);
+
+    try {
+      const taskToTransfer = tasks.find((task) => task.id === taskId);
+      if (!taskToTransfer) {
+        message.error("Task not found");
+        return;
+      }
+
+      // Update the task status in the backend
+      const response = await apiClient.put(`/tasks/${taskId}`, {
+        status: column,
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        message.success(`Task moved to ${column}`);
+
+        // Update the local state
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId ? { ...task, column, status: column } : task
+          ),
+        }));
+      } else {
+        message.error("Failed to update task");
+      }
+    } catch (error) {
+      console.error("Error moving task:", error);
+      message.error("Failed to update task");
+    } finally {
+      setLoading(false);
+    }
+  },
+
+  addQuickTask: (quickTask: QuickTaskType) => {
+    set((state) => ({
+      quickTasks: [...state.quickTasks, quickTask],
+    }));
+  },
+
+  getQuickTasks: async () => {
+    const response: AxiosResponse<QuickTaskType[]> = await apiClient.get(
+      "/quicktasks"
+    );
+
+    if (response.status === 200 || response.status === 201) {
+      set({ quickTasks: response.data });
+    }
+  },
+
+  updateQuickTask: async (id: string, status: string) => {
+    try {
+      const response = await apiClient.put(`/quicktasks/${id}`, {
+        status: status,
+      });
+      if (response.status === 200 || response.status === 201) {
+        message.success("Quick task updated successfully");
+        await get().getQuickTasks();
+      } else {
+        message.error("Failed to update quick task");
+      }
+    } catch (error) {
+      console.error("Error updating quick task:", error);
+      message.error("Failed to update quick task");
+    }
+  },
+
+  deleteQuickTask: async (id: string) => {
+    const response = await apiClient.delete(`/quicktasks/${id}`);
+    if (response.status === 200 || response.status === 201) {
+      message.success("Quick task deleted successfully");
+      await get().getQuickTasks();
+    }
+  },
+
+  getStats: async () => {
+    const response: AxiosResponse<Stats> = await apiClient.get("/tasks/stats");
+    if (response.status === 200 || response.status === 201) {
+      const stats = response.data;
+      set({
+        stats: {
+          total: stats.total,
+          totalCompletedTasks: stats?.byStatus?.COMPLETED,
+          totalPendingTasks: stats?.byStatus?.PENDING,
+          totalInProgressTasks: stats?.byStatus?.IN_PROGRESS,
+          totalCancelledTasks: stats?.byStatus?.CANCELLED,
+          onGoingTasks: stats.onGoingTasks,
+        },
+      });
+    }
   },
 }));
 

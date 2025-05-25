@@ -1,27 +1,17 @@
-import React, { Suspense } from "react";
-import "./App.css";
+import { Suspense } from "react";
 import { UserProvider } from "./context/useUserContext";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { Approuter } from "./router/Approuter";
+import { App as AntdApp } from "antd";
 
-const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard"));
-const LoginForm = React.lazy(() => import("./components/login/Login"));
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Dashboard />,
-  },
-  {
-    path: "/login",
-    element: <LoginForm />,
-  },
-]);
+import "./App.css";
 
 function App() {
   return (
     <UserProvider>
       <Suspense fallback={<div>Loading...</div>}>
-        <RouterProvider router={router} />
+        <AntdApp>
+          <Approuter />
+        </AntdApp>
       </Suspense>
     </UserProvider>
   );

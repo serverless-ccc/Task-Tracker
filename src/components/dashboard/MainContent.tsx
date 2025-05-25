@@ -8,6 +8,7 @@ import { Kanban } from "../kanban/Kanban";
 import AdminDashboard from "../admin/AdminDashboard";
 import { TestimonialCarousel } from "./slide";
 import useKanbanStore, { Task } from "../../store/useKanbanStore";
+import Streak from "../streak/Streak";
 
 const MainContent = () => {
   const { logout, profile } = useUserStore();
@@ -40,6 +41,12 @@ const MainContent = () => {
       key: "4",
       label: "Slide",
       children: <TestimonialCarousel testimonials={tasks as Task[]} />,
+      disabled: profile?.role === "USER",
+    },
+    {
+      key: "5",
+      label: "Streak",
+      children: <Streak completedDates={[]} currentStreak={0} />,
       disabled: profile?.role === "USER",
     },
   ];

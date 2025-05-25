@@ -1,5 +1,7 @@
 import React, { useState, DragEvent } from "react";
-import { Trash2, Flame, PlusIcon, WandSparkles } from "lucide-react";
+import { PlusIcon, WandSparkles } from "lucide-react";
+import fire from "../../assets/fire.lottie";
+
 import { motion } from "framer-motion";
 
 import TrelloCard from "../Card";
@@ -10,6 +12,7 @@ import { priorityOptions } from "../../utils/options";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { elaborateTaskWithGroq } from "../../utils/groqTaskElaborator";
+import { DotLottie, DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export const Kanban = () => {
   const {
@@ -21,7 +24,7 @@ export const Kanban = () => {
     updateTask,
   } = useKanban();
   return (
-    <div className="h-screen w-full bg-neutral-900 text-neutral-50">
+    <div className="">
       <Board
         form={form}
         handleSubmit={handleSubmit}
@@ -52,7 +55,7 @@ const Board = ({
   const { tasks, setTasks } = useKanbanStore();
 
   return (
-    <div className="flex h-full w-full gap-3 overflow-scroll px-12">
+    <div className="flex h-full w-full gap-3 overflow-hidden">
       <Column
         title="Pending"
         column="PENDING"
@@ -225,9 +228,9 @@ const Column = ({
       className="w-56 shrink-0 min-h-[90vh]"
       style={{ scrollbarWidth: "none" }}
     >
-      <div className="mb-3 flex items-center justify-between sticky top-0 bg-neutral-900 z-10 pt-6">
-        <div className="flex items-center justify-between w-full px-3 py-2 bg-black/50 rounded-lg">
-          <h3 className={`font-medium ${headingColor}`}>{title}</h3>
+      <div className="mb-3 flex items-center justify-between sticky top-0  z-10 pt-6">
+        <div className="flex items-center justify-between w-full px-3 py-2 rounded-lg">
+          <h3 className={`font-medium text-sm ${headingColor}`}>{title}</h3>
           <div className="flex items-center justify-end">
             <AddCard column={column} form={form} handleSubmit={handleSubmit} />
           </div>
@@ -240,9 +243,12 @@ const Column = ({
         onDrop={handleDragEnd}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`h-full w-full transition-colors ${
+        className={`h-[calc(100vh-10rem)] overflow-y-auto w-full transition-colors px-1 rounded-md  ${
           active ? "bg-neutral-800/50" : "bg-neutral-800/0"
         }`}
+        style={{
+          scrollbarWidth: "none",
+        }}
       >
         {filteredCards.map((c) => {
           return (
@@ -349,22 +355,24 @@ const DropIndicator = ({ beforeId, column }: DropIndicatorProps) => {
 };
 
 const BurnBarrel = () => {
-  const [active, setActive] = useState(false);
   const { moveTaskToEnd } = useKanbanStore();
+
+  const [dotLottie, setDotLottie] = useState<DotLottie | null>(null);
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
-    setActive(true);
+
+    dotLottie?.play();
   };
 
   const handleDragLeave = () => {
-    setActive(false);
+    dotLottie?.pause();
   };
 
   const handleDragEnd = (e: DragEvent) => {
     const cardId = e.dataTransfer.getData("cardId");
     moveTaskToEnd(cardId);
 
-    setActive(false);
+    dotLottie?.pause();
   };
 
   return (
@@ -372,13 +380,14 @@ const BurnBarrel = () => {
       onDrop={handleDragEnd}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      className={`mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${
-        active
-          ? "border-red-800 bg-red-800/20 text-red-500"
-          : "border-neutral-500 bg-neutral-500/20 text-neutral-500"
-      }`}
+      className="mt-10 grid h-56 w-56 shrink-0 place-content-center rounded text-3xl"
     >
-      {active ? <Flame className="animate-bounce" /> : <Trash2 />}
+      <DotLottieReact
+        src={fire}
+        dotLottieRefCallback={setDotLottie}
+        style={{ width: "224px" }}
+      />
+      {/* {active ? <Flame className="animate-bounce" /> : <Trash2 />} */}
     </div>
   );
 };
@@ -413,7 +422,9 @@ const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
       <Button
         type="default"
         onClick={() => setIsModalOpen(true)}
-        icon={<PlusIcon size={14} />}
+        icon={<PlusIcon size={12} />}
+        size="small"
+        ghost
       />
       <Modal
         open={isModalOpen}
@@ -448,6 +459,7 @@ const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
                 onClick={handleElaborate}
                 loading={loadingAI}
                 icon={<WandSparkles size={12} />}
+                size="small"
                 className="mb-4"
               >
                 Elaborate with AI
@@ -499,7 +511,8 @@ const AddCard = ({ column, form, handleSubmit }: AddCardProps) => {
               <Button
                 type="primary"
                 htmlType="submit"
-                icon={<PlusIcon size={14} />}
+                icon={<PlusIcon size={12} />}
+                size="small"
                 block
                 className="!w-fit ml-auto !flex"
               >

@@ -21,6 +21,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
   return (
     <div className="grid grid-cols-12 gap-6">
       <div className="md:col-span-4 col-span-12  ">

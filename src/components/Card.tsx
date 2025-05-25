@@ -51,10 +51,6 @@ export default function TrelloCard({
     }
   };
 
-  // Clean description text (remove markdown and limit to 2 lines)
-  // const cleanDescription =
-  //   profile?.role === "ADMIN" ? cardData.description : cardData?.description;
-  // console.log(cardData.description);
   return (
     <div className="flex items-center justify-center w-full transition-all duration-300 h-full">
       <div className="bg-white rounded-md shadow-md w-64 p-3 cursor-pointer h-full">
@@ -63,7 +59,7 @@ export default function TrelloCard({
           <div
             className={`${getPriorityColor(
               cardData.priority as string
-            )} text-xs text-white px-2 py-1 rounded-md font-medium`}
+            )} text-[10px] text-white px-1 py-0.5 flex items-center justify-center rounded-md font-medium`}
           >
             {cardData.priority}
           </div>
@@ -107,7 +103,7 @@ export default function TrelloCard({
             <div
               className={`${getPriorityColor(
                 cardData.status as string
-              )} text-xs text-white px-2 py-1 rounded-md font-medium ml-auto`}
+              )} text-[10px] text-white px-2 py-1 rounded-md font-medium ml-auto`}
             >
               {cardData.status}
             </div>
@@ -117,12 +113,14 @@ export default function TrelloCard({
         {/* Card Title */}
         {editingTodo !== cardData.id ? (
           <>
-            <h2 className="text-sm text-gray-700 font-semibold mb-2">
-              {cardData.user?.name}
-            </h2>
-            <h3 className="font-medium text-gray-700 mb-2">{cardData.title}</h3>
+            {cardData.user?.name && (
+              <h2 className="text-sm text-gray-700 font-semibold mb-2">
+                {cardData.user?.name}
+              </h2>
+            )}
+            <h3 className="text-sm line-clamp-3">{cardData.title}</h3>
 
-            <p className="text-sm text-gray-600 mb-3 overflow-hidden line-clamp-2">
+            <p className="text-xs text-gray-600 mb-3 overflow-hidden line-clamp-2">
               {cardData.description}
             </p>
           </>
@@ -157,8 +155,8 @@ export default function TrelloCard({
 
         {/* Card Footer */}
         <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
-          <div className="flex items-center text-xs text-gray-500">
-            <Clock size={14} className="mr-1" />
+          <div className="flex items-center text-[10px] text-gray-500">
+            <Clock size={10} className="mr-1" />
             <span>{formatDate(cardData.date as string)}</span>
           </div>
           <div className="flex items-center text-xs text-gray-500">

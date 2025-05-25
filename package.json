@@ -13,6 +13,7 @@
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@anthropic-ai/sdk": "^0.40.1",
     "@atlaskit/pragmatic-drag-and-drop": "^1.0.0",
+    "@lottiefiles/dotlottie-react": "^0.13.5",
     "@react-oauth/google": "^0.12.1",
     "antd": "^5.24.9",
     "axios": "^1.6.7",
